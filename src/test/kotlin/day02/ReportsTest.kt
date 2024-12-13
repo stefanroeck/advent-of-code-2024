@@ -48,9 +48,38 @@ class ReportsTest {
     }
 
     @Test
+    fun `variants with single level skipped`() {
+        assertEquals(
+            listOf(
+                Report(listOf(2, 3, 4)),
+                Report(listOf(1, 3, 4)),
+                Report(listOf(1, 2, 4)),
+                Report(listOf(1, 2, 3)),
+            ), Report(listOf(1, 2, 3, 4)).variantsWithSingleLevelSkipped()
+        )
+    }
+
+    @Test
+    fun `test with dampener tests on a single variant`() {
+        val unsafeReport = Report(listOf(76, 79, 76, 79, 79), withDampener = true)
+        assertFalse(unsafeReport.isSafe())
+
+        val safeReport = Report(listOf(5, 6, 5, 7, 10), withDampener = true)
+        assertTrue(safeReport.isSafe())
+    }
+
+    @Test
     fun `safe reports with sample`() {
         val count: Int = Reports.countSafeReports(SAMPLE_INPUT.trimIndent())
 
         assertEquals(2, count)
     }
+
+    @Test
+    fun `safe reports with sample and dampener`() {
+        val count: Int = Reports.countSafeReportsWithDampener(SAMPLE_INPUT.trimIndent())
+
+        assertEquals(4, count)
+    }
+
 }

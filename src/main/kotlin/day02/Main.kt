@@ -1006,6 +1006,7 @@ fun main() {
     """.trimIndent()
 
     val safeReports = Reports.countSafeReports(input)
-
     println("Safe reports: $safeReports")
+    val safeReportsWithDampener = Reports.countSafeReportsWithDampener(input)
+    println("Safe reports with dampener: $safeReportsWithDampener")
 }
