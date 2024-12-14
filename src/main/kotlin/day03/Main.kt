@@ -6,6 +6,9 @@ fun main() {
     checkNotNull(input) { "cannot read input from $file" }
 
     val sum = Multiplier.multiply(input)
-
     println("sum of all products: $sum")
+
+    val sumWithInstructions = Multiplier.multiplyWithDoAndDont(input)
+    println("sum of all products with enhanced instructions: $sumWithInstructions")
+
 }
