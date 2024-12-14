@@ -27,14 +27,14 @@ object WordSearch {
 
         fun translate(delta: Int, direction: Direction): Point {
             return when (direction) {
-                Direction.Left -> Point(this.col - delta + 1, this.row)
-                Direction.Right -> Point(this.col + delta - 1, this.row)
-                Direction.Up -> Point(this.col, this.row - delta + 1)
-                Direction.Down -> Point(this.col, this.row + delta - 1)
-                Direction.TopRight -> Point(this.col + delta - 1, this.row - delta + 1)
-                Direction.BottomRight -> Point(this.col + delta - 1, this.row + delta - 1)
-                Direction.BottomLeft -> Point(this.col - delta + 1, this.row + delta - 1)
-                Direction.TopLeft -> Point(this.col - delta + 1, this.row - delta + 1)
+                Direction.Left -> Point(this.col - delta, this.row)
+                Direction.Right -> Point(this.col + delta, this.row)
+                Direction.Up -> Point(this.col, this.row - delta)
+                Direction.Down -> Point(this.col, this.row + delta)
+                Direction.TopRight -> Point(this.col + delta, this.row - delta)
+                Direction.BottomRight -> Point(this.col + delta, this.row + delta)
+                Direction.BottomLeft -> Point(this.col - delta, this.row + delta)
+                Direction.TopLeft -> Point(this.col - delta, this.row - delta)
             }
         }
     }
@@ -57,7 +57,7 @@ object WordSearch {
 
         private fun countWordsInAllDirectionsAt(point: Point, word: String): Int {
             val wordsInAllDirections =
-                Direction.entries.map { direction -> wordAt(point, point.translate(word.length, direction)) }
+                Direction.entries.map { direction -> wordAt(point, point.translate(word.length - 1, direction)) }
 
             return countMatchingWords(word, wordsInAllDirections)
         }
@@ -71,6 +71,22 @@ object WordSearch {
             words.forEach { check(expectedWord.length == it.length) }
 
             return words.count { it == expectedWord }
+        }
+
+        fun countXMasPatterns(): Int {
+            return points().filter { point ->
+                charAt(point) == 'A'
+            }.sumOf { countXMasPatternsAround(it) }
+        }
+
+        private fun countXMasPatternsAround(point: Point): Int {
+            val firstXLegWord =
+                wordAt(point.translate(1, Direction.TopLeft), point.translate(1, Direction.BottomRight))
+            val secondXLegWord =
+                wordAt(point.translate(1, Direction.TopRight), point.translate(1, Direction.BottomLeft))
+
+            val words = listOf(firstXLegWord, secondXLegWord)
+            return if (words.all { it == "MAS" || it == "SAM" }) 1 else 0
         }
     }
 
@@ -92,5 +108,11 @@ object WordSearch {
             }.toMap()
 
         return WordPuzzle(letterMap, height = rows.size, width = rows[0].length)
+    }
+
+    fun countXmasPattern(input: String): Int {
+        val puzzle = parse(input)
+
+        return puzzle.countXMasPatterns()
     }
 }

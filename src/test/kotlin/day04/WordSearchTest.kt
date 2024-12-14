@@ -134,4 +134,50 @@ class WordSearchTest {
         )
     }
 
+    @Test
+    fun `search most simple x-mas`() {
+        val input = """
+            M.S
+            .A.
+            M.S
+        """.trimIndent()
+
+        val count = WordSearch.countXmasPattern(input)
+
+        assertEquals(1, count)
+    }
+
+    @Test
+    fun `search most sample x-mas`() {
+        val input = """
+            .M.S......
+            ..A..MSMS.
+            .M.S.MAA..
+            ..A.ASMSM.
+            .M.S.M....
+            ..........
+            S.S.S.S.S.
+            .A.A.A.A..
+            M.M.M.M.M.
+            ..........
+        """.trimIndent()
+
+        val count = WordSearch.countXmasPattern(input)
+
+        assertEquals(9, count)
+    }
+
+    @Test
+    fun `translate Points`() {
+        assertEquals(Point(2, 1), Point(1, 1).translate(1, Point.Direction.Right))
+        assertEquals(Point(0, 1), Point(1, 1).translate(1, Point.Direction.Left))
+        assertEquals(Point(1, 0), Point(1, 1).translate(1, Point.Direction.Up))
+        assertEquals(Point(1, 2), Point(1, 1).translate(1, Point.Direction.Down))
+
+        assertEquals(Point(2, 0), Point(1, 1).translate(1, Point.Direction.TopRight))
+        assertEquals(Point(2, 2), Point(1, 1).translate(1, Point.Direction.BottomRight))
+        assertEquals(Point(0, 2), Point(1, 1).translate(1, Point.Direction.BottomLeft))
+        assertEquals(Point(0, 0), Point(1, 1).translate(1, Point.Direction.TopLeft))
+    }
+
 }

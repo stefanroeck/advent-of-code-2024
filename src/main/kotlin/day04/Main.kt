@@ -7,4 +7,8 @@ fun main() {
 
     val sum = WordSearch.count(input, "XMAS")
     println("sum of all XMAS words: $sum")
+
+    val xmasPatterns = WordSearch.countXmasPattern(input)
+    println("sum of all X-MAS patterns: $xmasPatterns")
+
 }
