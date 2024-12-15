@@ -1,6 +1,8 @@
 package day05
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import kotlin.test.assertEquals
 
 private const val SAMPLE_INPUT = """
@@ -70,6 +72,30 @@ class PageUpdatesTest {
         val instructions = PageUpdates.parseInput(input)
 
         assertEquals(143, instructions.sumOfMiddlePageNumbersForCorrectUpdates())
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        ignoreLeadingAndTrailingWhitespace = true,
+        textBlock = """
+        '75,97,47,61,53', '97,75,47,61,53'
+        '61,13,29', '61,29,13'
+        '97,13,75,29,47', '97,75,47,29,13'"""
+    )
+    fun `fix incorrect updates`(incorrectUpdate: String, fixedUpdate: String) {
+        val incorrectPages = incorrectUpdate.split(",").map { it.toInt() }
+        val fixedPages = fixedUpdate.split(",").map { it.toInt() }
+        val rules = PageUpdates.parseInput(SAMPLE_INPUT.trimIndent()).rules
+
+        assertEquals(fixedPages, PageUpdate(incorrectPages).fixOrder(rules).pages)
+    }
+
+    @Test
+    fun `sum of middle page numbers for incorrect updates`() {
+        val input = SAMPLE_INPUT.trimIndent()
+        val instructions = PageUpdates.parseInput(input)
+
+        assertEquals(123, instructions.sumOfMiddlePageNumbersForIncorrectUpdates())
     }
 
 }
