@@ -7,7 +7,9 @@ fun main() {
     val input = FileUtil.readFile("/day06/input.txt")
     val labMap = LabWithGuard.buildLabMap(parseLines(input))
 
-    val updatedMap = labMap.sendGuardOnPatrol()
-    val visitedLocations = updatedMap.visitedLocations()
-    println("number of visited guard locations: $visitedLocations")
+    val updatedMap = LabWithGuard.sendGuardOnPatrol(labMap)
+    println("number of visited guard locations: ${updatedMap.visitedLocations().size}")
+
+    val loopTrapObstructions = LabWithGuard.findLoopTrapObstructions(labMap)
+    println("number of loop trap obstructions: ${loopTrapObstructions.size}")
 }

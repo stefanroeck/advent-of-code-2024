@@ -31,10 +31,24 @@ private const val SAMPLE_INPUT_END_MAP = """
 ......#X..    
 """
 
+private const val SAMPLE_OBSTACLE_MAP = """
+....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#.O^.....
+......OO#.
+#O.O......
+......#O..
+"""
+
+
 class LabMapWithGuardTest {
     @Test
     fun `parse Lab plan`() {
-        val labMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_START_MAP))
+        val labMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_OBSTACLE_MAP))
 
         with(labMap) {
             assertEquals(10, height)
@@ -43,7 +57,9 @@ class LabMapWithGuardTest {
             assertEquals(MapMarker.EmptyTile, markerAt(Point(9, 9)))
             assertEquals(MapMarker.Obstacle, markerAt(Point(4, 0)))
             assertEquals(MapMarker.GuardUp, markerAt(Point(4, 6)))
-            assertEquals(Point(4, 6), guardLocation())
+            assertEquals(MapMarker.LoopTrapObstruction, markerAt(Point(3, 6)))
+            assertEquals(MapMarker.LoopTrapObstruction, markerAt(Point(7, 9)))
+            assertEquals(Point(4, 6), guardLocation)
         }
     }
 
@@ -52,11 +68,30 @@ class LabMapWithGuardTest {
         val startMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_START_MAP))
         val endMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_END_MAP))
 
-        val updatedLabMap = startMap.sendGuardOnPatrol()
+        val updatedLabMap = LabWithGuard.sendGuardOnPatrol(startMap)
 
-        assertNull(updatedLabMap.guardLocation())
-        assertEquals(41, updatedLabMap.visitedLocations())
+        assertNull(updatedLabMap.guardLocation)
+        assertEquals(41, updatedLabMap.visitedLocations().size)
         assertEquals(endMap, updatedLabMap)
+    }
+
+    @Test
+    fun `find loop trap obstructions`() {
+        val startMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_START_MAP))
+        val expectedObstacleMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_OBSTACLE_MAP))
+
+        val foundObstructions = LabWithGuard.findLoopTrapObstructions(startMap)
+
+        assertEquals(6, expectedObstacleMap.obstructions().size)
+        assertEquals(expectedObstacleMap.obstructions(), foundObstructions)
+    }
+
+    @Test
+    fun `ensure guard detects loop`() {
+        val obstacleMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_OBSTACLE_MAP))
+
+        val loopAtGuardPosition = LabWithGuard.sendGuardUntilEntersLoop(obstacleMap)
+        assertEquals(Point(4, 6), loopAtGuardPosition.get())
     }
 
 }
