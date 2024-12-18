@@ -18,19 +18,6 @@ private const val SAMPLE_INPUT_START_MAP = """
 ......#...
 """
 
-private const val SAMPLE_INPUT_END_MAP = """
-....#.....
-....XXXXX#
-....X...X.
-..#.X...X.
-..XXXXX#X.
-..X.X.X.X.
-.#XXXXXXX.
-.XXXXXXX#.
-#XXXXXXX..
-......#X..    
-"""
-
 private const val SAMPLE_OBSTACLE_MAP = """
 ....#.....
 .........#
@@ -56,7 +43,8 @@ class LabMapWithGuardTest {
             assertEquals(MapMarker.EmptyTile, markerAt(Point(0, 0)))
             assertEquals(MapMarker.EmptyTile, markerAt(Point(9, 9)))
             assertEquals(MapMarker.Obstacle, markerAt(Point(4, 0)))
-            assertEquals(MapMarker.GuardUp, markerAt(Point(4, 6)))
+            assertEquals(guardLocation, Point(4, 6))
+            assertEquals(guardDirection, Direction.Up)
             assertEquals(MapMarker.LoopTrapObstruction, markerAt(Point(3, 6)))
             assertEquals(MapMarker.LoopTrapObstruction, markerAt(Point(7, 9)))
             assertEquals(Point(4, 6), guardLocation)
@@ -66,13 +54,11 @@ class LabMapWithGuardTest {
     @Test
     fun `send guard on patrol`() {
         val startMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_START_MAP))
-        val endMap = LabWithGuard.buildLabMap(parseLines(SAMPLE_INPUT_END_MAP))
 
         val updatedLabMap = LabWithGuard.sendGuardOnPatrol(startMap)
 
         assertNull(updatedLabMap.guardLocation)
         assertEquals(41, updatedLabMap.visitedLocations().size)
-        assertEquals(endMap, updatedLabMap)
     }
 
     @Test

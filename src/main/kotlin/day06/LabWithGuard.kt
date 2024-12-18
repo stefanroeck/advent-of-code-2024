@@ -24,38 +24,18 @@ enum class Direction(val vector: Vector) {
     }
 }
 
-// Is there sth like a Typescript Record<>?
-private val guardDirectionMapping = mapOf(
-    Direction.Up to MapMarker.GuardUp,
-    Direction.Right to MapMarker.GuardRight,
-    Direction.Down to MapMarker.GuardDown,
-    Direction.Left to MapMarker.GuardLeft,
-)
-
 enum class MapMarker(val symbol: Char) {
     Obstacle('#'),
     EmptyTile('.'),
-    GuardUp('^'),
-    GuardRight('>'),
-    GuardDown('v'),
-    GuardLeft('<'),
-    Visited('X'),
     LoopTrapObstruction('O'),
     ;
 
-    fun isGuard() = listOf(GuardUp, GuardRight, GuardDown, GuardLeft).any { it == this }
     fun isObstacle() = listOf(Obstacle, LoopTrapObstruction).any { it == this }
-    fun isVisited() = listOf(Visited).any { it == this }
-
-    fun guardDirection() = guardDirectionMapping.entries.first { it.value == this }.key
 
     companion object {
         fun markerFor(symbol: Char): MapMarker {
             return MapMarker.entries.first { it.symbol == symbol }
         }
-
-        fun guardDirection(direction: Direction) =
-            guardDirectionMapping.entries.first { it.key == direction }.value
     }
 }
 
@@ -63,52 +43,62 @@ data class LabMap(
     private val points: Map<Point, MapMarker>,
     val width: Int,
     val height: Int,
-    val guardLocation: Point? = points.filter { it.value.isGuard() }.map { it.key }.firstOrNull()
+    val guardLocation: Point?,
+    val guardDirection: Direction,
+    private val visitedPoints: Set<Point> = emptySet(),
 ) {
     fun markerAt(point: Point) = points[point] ?: throw IllegalArgumentException("Point $point outside of map")
 
     internal fun moveGuard(): LabMap {
-        if (guardLocation != null) {
-            val guardMarker = markerAt(guardLocation)
-            val guardDirection = guardMarker.guardDirection()
-            val nextLocation = guardLocation.apply(guardDirection.vector)
-            if (!isOnMap(nextLocation)) {
-                // leave map
-                return transformMap(mapOf(guardLocation to MapMarker.Visited), newGuardLocation = null)
-            } else if (markerAt(nextLocation).isObstacle()) {
-                // rotate
-                val newGuardDirection = guardDirection.rotate()
-                val newGuardMarker = MapMarker.guardDirection(newGuardDirection)
-                return transformMap(mapOf(guardLocation to newGuardMarker), newGuardLocation = guardLocation)
-            } else {
-                // step forward
-                return transformMap(
-                    mapOf(guardLocation to MapMarker.Visited, nextLocation to guardMarker),
-                    newGuardLocation = nextLocation
-                )
-            }
+        if (guardLocation == null) throw IllegalStateException("Cannot move guard as he left the map.")
+
+        val nextLocation = guardLocation.apply(guardDirection.vector)
+        if (!isOnMap(nextLocation)) {
+            // leave map
+            return this.copy(guardLocation = null, visitedPoints = visitedPoints + guardLocation)
+        } else if (markerAt(nextLocation).isObstacle()) {
+            // rotate
+            val newGuardDirection = guardDirection.rotate()
+            return this.copy(guardDirection = newGuardDirection)
+        } else {
+            // step forward
+            return this.copy(guardLocation = nextLocation, visitedPoints = visitedPoints + guardLocation)
         }
-        return this
     }
 
     private fun isOnMap(point: Point): Boolean = point.x in 0..<width && point.y in 0..<height
 
-    internal fun transformMap(replacements: Map<Point, MapMarker>, newGuardLocation: Point?): LabMap {
+    internal fun transformMap(replacements: Map<Point, MapMarker>): LabMap {
         val newPoints = points.toMutableMap()
         replacements.forEach { (point, marker) -> newPoints[point] = marker }
-        return this.copy(points = newPoints.toMap(), guardLocation = newGuardLocation)
+        return this.copy(points = newPoints)
     }
 
-    fun visitedLocations() = points.filter { it.value.isVisited() }.keys
+    fun visitedLocations() = visitedPoints
     fun obstructions() = points.filter { it.value == MapMarker.LoopTrapObstruction }.keys
 }
 
 object LabWithGuard {
     fun buildLabMap(lines: List<String>): LabMap {
+        var guardLocation: Point? = null
         val points = lines.flatMapIndexed { y, line ->
-            line.mapIndexed { x, char -> Point(x, y) to MapMarker.markerFor(char) }
+            line.mapIndexed { x, char ->
+                val mapChar = if (char == '^') {
+                    guardLocation = Point(x, y)
+                    MapMarker.EmptyTile.symbol
+                } else {
+                    char
+                }
+                Point(x, y) to MapMarker.markerFor(mapChar)
+            }
         }.toMap()
-        return LabMap(points, width = lines[0].length, height = lines.size)
+        return LabMap(
+            points,
+            width = lines[0].length,
+            height = lines.size,
+            guardLocation = guardLocation,
+            guardDirection = Direction.Up
+        )
     }
 
     fun findLoopTrapObstructions(map: LabMap): Set<Point> {
@@ -118,13 +108,14 @@ object LabWithGuard {
         val visitedMap = sendGuardOnPatrol(initialMap)
         val visitedLocations = visitedMap.visitedLocations().filterNot { it == initialMap.guardLocation }
 
-        println("Trying traps for ${visitedLocations.size} locations")
-        val resultListWithObstructions: List<Point> = visitedLocations.flatMap { visitedPoint ->
+        println("Trying traps for ${visitedLocations.size} locations in a ${map.width}x${map.height} map")
+        val resultListWithObstructions: List<Point> = visitedLocations.flatMapIndexed { i, visitedPoint ->
             val searchMap =
-                initialMap.transformMap(mapOf(visitedPoint to MapMarker.LoopTrapObstruction), initialMap.guardLocation)
+                initialMap.transformMap(mapOf(visitedPoint to MapMarker.LoopTrapObstruction))
             val guardTrapped = sendGuardUntilEntersLoop(searchMap)
             if (guardTrapped.isPresent) {
                 println("  > Obstruction at $visitedPoint")
+                println("  > ${Math.round((i.toDouble() / visitedLocations.size.toDouble()) * 100)}% done")
                 listOf(visitedPoint)
             } else {
                 emptyList()
@@ -141,12 +132,12 @@ object LabWithGuard {
         do {
             val newMapAfterMovement = previousMap.moveGuard()
             val newGuardLocation = newMapAfterMovement.guardLocation
-            if (newGuardLocation != null && previousMap.markerAt(newGuardLocation).isVisited()) {
-                val guardDirection = newMapAfterMovement.markerAt(newGuardLocation).guardDirection()
+            if (newGuardLocation != null && previousMap.visitedLocations().contains(newGuardLocation)) {
+                val guardDirection = newMapAfterMovement.guardDirection
                 val newVisitCount =
                     pointsToVisitCount.compute(newGuardLocation) { _, old -> if (old == null) 1 else old + 1 }
-                if (newVisitCount != null && newVisitCount > 2) {
-                    // Visiting twice might happen for different orientations (right, down), but once more --> loop detected
+                if (newVisitCount != null && newVisitCount > 4) {
+                    // Visits might happen multiple times for different orientations (right, down), but not twice the same direction
                     println("Loop detected with guard at $newGuardLocation looking $guardDirection")
                     return Optional.of(newGuardLocation)
                 }
