@@ -1,7 +1,8 @@
 package day04
 
-import day04.WordSearch.Point
 import org.junit.jupiter.api.Test
+import util.MapOfThings.Direction
+import util.MapOfThings.Point
 import kotlin.test.assertEquals
 
 private const val SMALL_SAMPLE = """
@@ -48,10 +49,10 @@ class WordSearchTest {
         assertEquals(30, puzzle.pointCount())
         assertEquals(6, puzzle.width)
         assertEquals(5, puzzle.height)
-        assertEquals('.', puzzle.charAt(Point(0, 0)))
-        assertEquals('X', puzzle.charAt(Point(2, 0)))
-        assertEquals('A', puzzle.charAt(Point(1, 2)))
-        assertEquals('.', puzzle.charAt(Point(5, 4)))
+        assertEquals('.', puzzle.thingAt(Point(0, 0)))
+        assertEquals('X', puzzle.thingAt(Point(2, 0)))
+        assertEquals('A', puzzle.thingAt(Point(1, 2)))
+        assertEquals('.', puzzle.thingAt(Point(5, 4)))
     }
 
     @Test
@@ -169,15 +170,15 @@ class WordSearchTest {
 
     @Test
     fun `translate Points`() {
-        assertEquals(Point(2, 1), Point(1, 1).translate(1, Point.Direction.Right))
-        assertEquals(Point(0, 1), Point(1, 1).translate(1, Point.Direction.Left))
-        assertEquals(Point(1, 0), Point(1, 1).translate(1, Point.Direction.Up))
-        assertEquals(Point(1, 2), Point(1, 1).translate(1, Point.Direction.Down))
+        assertEquals(Point(2, 1), Point(1, 1).translate(1, Direction.Right))
+        assertEquals(Point(0, 1), Point(1, 1).translate(1, Direction.Left))
+        assertEquals(Point(1, 0), Point(1, 1).translate(1, Direction.Up))
+        assertEquals(Point(1, 2), Point(1, 1).translate(1, Direction.Down))
 
-        assertEquals(Point(2, 0), Point(1, 1).translate(1, Point.Direction.TopRight))
-        assertEquals(Point(2, 2), Point(1, 1).translate(1, Point.Direction.BottomRight))
-        assertEquals(Point(0, 2), Point(1, 1).translate(1, Point.Direction.BottomLeft))
-        assertEquals(Point(0, 0), Point(1, 1).translate(1, Point.Direction.TopLeft))
+        assertEquals(Point(2, 0), Point(1, 1).translate(1, Direction.TopRight))
+        assertEquals(Point(2, 2), Point(1, 1).translate(1, Direction.BottomRight))
+        assertEquals(Point(0, 2), Point(1, 1).translate(1, Direction.BottomLeft))
+        assertEquals(Point(0, 0), Point(1, 1).translate(1, Direction.TopLeft))
     }
 
 }
