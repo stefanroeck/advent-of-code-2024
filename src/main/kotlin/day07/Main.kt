@@ -5,7 +5,12 @@ import util.InputUtils
 
 fun main() {
     val input = FileUtil.readFile("/day07/input.txt")
-    val sum = BridgeRepair.findOperatorsAndCalcSum(InputUtils.parseLines(input))
+    val lines = InputUtils.parseLines(input)
 
-    println("sum of all correct bridge operations: $sum")
+    val sumTwoOperators = BridgeRepair.findTwoOperatorsAndCalcSum(lines)
+    println("sum of all correct bridge operations with 2 operators: $sumTwoOperators")
+
+    val sumThreeOperators = BridgeRepair.findThreeOperatorsAndCalcSum(lines)
+    println("sum of all correct bridge operations with 3 operators: $sumThreeOperators")
+
 }

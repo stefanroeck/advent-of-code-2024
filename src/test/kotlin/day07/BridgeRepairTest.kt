@@ -20,10 +20,22 @@ private const val SAMPLE_INPUT = """
 class BridgeRepairTest {
 
     @Test
-    fun `test sample`() {
-        val sum = BridgeRepair.findOperatorsAndCalcSum(InputUtils.parseLines(SAMPLE_INPUT))
+    fun `test sample with two operators`() {
+        val sum = BridgeRepair.findTwoOperatorsAndCalcSum(InputUtils.parseLines(SAMPLE_INPUT))
 
         assertEquals(3749, sum)
+    }
+
+    @Test
+    fun `test sample with third operator (part 2)`() {
+        val sum = BridgeRepair.findThreeOperatorsAndCalcSum(InputUtils.parseLines(SAMPLE_INPUT))
+
+        assertEquals(11387, sum)
+    }
+
+    @Test
+    fun `make sure all operands are considered`() {
+        assertEquals(0, BridgeRepair.findTwoOperatorsAndCalcSum(listOf("100: 50 50 2")))
     }
 
 }
