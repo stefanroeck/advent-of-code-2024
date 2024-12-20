@@ -5,7 +5,11 @@ import kotlin.math.sign
 class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
 
     enum class Direction { Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft }
-    data class Point(val col: Int, val row: Int) {
+    data class Vector(val dx: Int, val dy: Int) {
+        fun invert() = Vector(dx = this.dx * -1, dy = this.dy * -1)
+    }
+
+    data class Point(val col: Int, val row: Int) : Comparable<Point> {
 
         companion object {
             fun pointsBetween(start: Point, end: Point): List<Point> {
@@ -22,6 +26,8 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
                 points.add(end)
                 return points.toList()
             }
+
+            fun vector(start: Point, end: Point): Vector = Vector(dx = end.col - start.col, dy = end.row - start.row)
         }
 
         fun translate(delta: Int, direction: Direction): Point {
@@ -35,6 +41,16 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
                 Direction.BottomLeft -> Point(this.col - delta, this.row + delta)
                 Direction.TopLeft -> Point(this.col - delta, this.row - delta)
             }
+        }
+
+        fun translate(vector: Vector) = Point(col + vector.dx, row + vector.dy)
+
+        infix fun <T> within(map: MapOfThings<T>): Boolean {
+            return col >= 0 && this.col < map.width && row >= 0 && this.row < map.height
+        }
+
+        override fun compareTo(other: Point): Int {
+            return if (row != other.row) row.compareTo(other.row) else (col.compareTo(other.col))
         }
     }
 
