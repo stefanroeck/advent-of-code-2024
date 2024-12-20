@@ -1,6 +1,7 @@
 package day04
 
 import org.junit.jupiter.api.Test
+import util.InputUtils.parseLines
 import util.MapOfThings.Direction
 import util.MapOfThings.Point
 import kotlin.test.assertEquals
@@ -30,21 +31,21 @@ class WordSearchTest {
 
     @Test
     fun `search xmas in small sample`() {
-        val count: Int = WordSearch.count(SMALL_SAMPLE.trimIndent(), "XMAS")
+        val count: Int = WordSearch().count(parseLines(SMALL_SAMPLE), "XMAS")
 
         assertEquals(4, count)
     }
 
     @Test
     fun `search xmas in bigger sample`() {
-        val count: Int = WordSearch.count(BIGGER_SAMPLE.trimIndent(), "XMAS")
+        val count: Int = WordSearch().count(parseLines(BIGGER_SAMPLE), "XMAS")
 
         assertEquals(18, count)
     }
 
     @Test
     fun `parse small input`() {
-        val puzzle = WordSearch.parse(SMALL_SAMPLE)
+        val puzzle = WordSearch().parse(parseLines(SMALL_SAMPLE))
 
         assertEquals(30, puzzle.pointCount())
         assertEquals(6, puzzle.width)
@@ -143,7 +144,7 @@ class WordSearchTest {
             M.S
         """.trimIndent()
 
-        val count = WordSearch.countXmasPattern(input)
+        val count = WordSearch().countXmasPattern(parseLines(input))
 
         assertEquals(1, count)
     }
@@ -163,7 +164,7 @@ class WordSearchTest {
             ..........
         """.trimIndent()
 
-        val count = WordSearch.countXmasPattern(input)
+        val count = WordSearch().countXmasPattern(parseLines(input))
 
         assertEquals(9, count)
     }

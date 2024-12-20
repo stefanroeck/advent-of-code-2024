@@ -2,7 +2,7 @@ package util
 
 import kotlin.math.sign
 
-open class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
+class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
 
     enum class Direction { Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft }
     data class Point(val col: Int, val row: Int) {
@@ -38,6 +38,17 @@ open class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val
         }
     }
 
+    companion object {
+        fun <T> parse(rows: List<String>, mapper: (c: Char) -> T): MapOfThings<T> {
+            val pointMap = rows
+                .flatMapIndexed { row, letters ->
+                    letters.mapIndexed { col, char -> Point(col, row) to mapper(char) }
+                }.toMap()
+
+            return MapOfThings(pointMap, height = rows.size, width = rows[0].length)
+        }
+    }
+
     fun thingAt(point: Point): T? {
         return points[point]
     }
@@ -45,5 +56,5 @@ open class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val
     fun pointCount() = points.size
 
     fun points() = points.keys
-    
+
 }
