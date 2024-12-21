@@ -31,26 +31,39 @@ class AntennaAntinodes(input: List<String>) {
     }
 
     fun countAntinodes(): Int {
-        return antinodes().count()
+        return antinodes(maxResonances = 1).size
     }
 
-    private fun antinodes() = distinctAntennaTypes().flatMap { antenna ->
+    fun countAntinodesWithResonantHarmonics(): Int {
+        return antinodes(maxResonances = Int.MAX_VALUE).size
+    }
+
+    private fun antinodes(maxResonances: Int) = distinctAntennaTypes().flatMap { antenna ->
         val antennaPoints = map.points().filter { map.thingAt(it) == antenna }
 
         val antinodePoints = mutableSetOf<Point>()
+
+        if (maxResonances > 0 && antennaPoints.size > 2) {
+            // antennas are antinode if more than 2 exist
+            antinodePoints.addAll(antennaPoints)
+        }
+
         for (firstPoint in antennaPoints) {
             for (secondPoint in antennaPoints) {
                 if (firstPoint != secondPoint) {
                     val vector = Point.vector(firstPoint, secondPoint)
-                    val antinode = secondPoint.translate(vector)
 
-                    if (antinode within map) {
+                    var resonances = 0
+                    var antinode = secondPoint.translate(vector)
+
+                    while (resonances++ < maxResonances && antinode within map) {
                         antinodePoints.add(antinode)
+                        antinode = antinode.translate(vector)
                     }
                 }
             }
         }
-        println("${antennaPoints.size} $antenna have ${antinodePoints.size} antinodes: $antinodePoints")
+        println("${antennaPoints.size} $antenna have ${antinodePoints.size} antinodes: ${antinodePoints.sorted()}")
         antinodePoints
     }.toSet()
 }

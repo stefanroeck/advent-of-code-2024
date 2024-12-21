@@ -30,4 +30,13 @@ class AntennaAntinodesTest {
         assertEquals(setOf(Antenna('A'), Antenna('0')), antennaAntinodes.distinctAntennaTypes())
         assertEquals(14, antennaAntinodes.countAntinodes())
     }
+
+    @Test
+    fun `resonant harmonic antinodes for sample`() {
+        // replace antinodes from sample as there're just for illustration
+        val antennaAntinodes = AntennaAntinodes(parseLines(SAMPLE_INPUT.replace("#", ".")))
+
+        assertEquals(34, antennaAntinodes.countAntinodesWithResonantHarmonics())
+    }
+
 }

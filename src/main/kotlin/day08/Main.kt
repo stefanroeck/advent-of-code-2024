@@ -8,6 +8,8 @@ fun main() {
     val rows = parseLines(input)
 
     val antinodeCount = AntennaAntinodes(rows).countAntinodes()
-    //321 too low
     println("number of antinodes: $antinodeCount")
+
+    val resonantHarmonicAntinodeCount = AntennaAntinodes(rows).countAntinodesWithResonantHarmonics()
+    println("number of resonant harmonic antinodes: $resonantHarmonicAntinodeCount")
 }
