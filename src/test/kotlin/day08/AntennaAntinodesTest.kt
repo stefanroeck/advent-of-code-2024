@@ -28,7 +28,7 @@ class AntennaAntinodesTest {
         val antennaAntinodes = AntennaAntinodes(parseLines(SAMPLE_INPUT.replace("#", ".")))
 
         assertEquals(setOf(Antenna('A'), Antenna('0')), antennaAntinodes.distinctAntennaTypes())
-        assertEquals(14, antennaAntinodes.countAntinodes())
+        assertEquals(20, antennaAntinodes.countAntinodes())
     }
 
     @Test
