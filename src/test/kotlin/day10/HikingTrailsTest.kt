@@ -77,4 +77,36 @@ class HikingTrailsTest {
         assertEquals(36, hikingTrails.score())
     }
 
+    @Test
+    fun distinctHikingTrailRating() {
+        val input = """
+            .....0.
+            ..4321.
+            ..5..2.
+            ..6543.
+            ..7..4.
+            ..8765.
+            ..9....
+        """.trimIndent()
+
+        val hikingTrails = HikingTrails(InputUtils.parseLines(input))
+        assertEquals(3, hikingTrails.distinctHikingTrails())
+    }
+
+    @Test
+    fun distinctHikingTrailRating2() {
+        val input = """
+            ..90..9
+            ...1.98
+            ...2..7
+            6543456
+            765.987
+            876....
+            987....
+        """.trimIndent()
+
+        val hikingTrails = HikingTrails(InputUtils.parseLines(input))
+        assertEquals(13, hikingTrails.distinctHikingTrails())
+    }
+
 }

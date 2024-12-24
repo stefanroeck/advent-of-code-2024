@@ -18,19 +18,31 @@ class HikingTrails(lines: List<String>) {
     fun trailHeads() = trailMap.pointsFor(Height(0))
 
     fun score() = trailHeads().sumOf {
-        scoreForTrailHead(it)
+        distinctTrails(it).map { path -> path.last() }.distinct().size
     }
 
-    private fun scoreForTrailHead(trailHead: Point): Int {
+    private fun distinctTrails(trailHead: Point): Set<List<Point>> {
         var currentHeight = 0
-        var pointsOnPathes = setOf(trailHead)
+        val distinctPathes = mutableListOf(listOf(trailHead))
         do {
             currentHeight++
-            pointsOnPathes = pointsOnPathes.flatMap { point ->
-                trailMap.adjacentPoints(point).filter { trailMap.thingAt(it)!!.height == currentHeight }
-            }.toSet()
-        } while (pointsOnPathes.isNotEmpty() && currentHeight < 9)
+            val pathesIterator = distinctPathes.listIterator()
+            pathesIterator.forEach { path ->
+                val adjacentPoints =
+                    trailMap.adjacentPoints(path.last()).filter { trailMap.thingAt(it)!!.height == currentHeight }
+                pathesIterator.remove()
+                adjacentPoints.forEach {
+                    pathesIterator.add(path + it)
+                }
+            }
+        } while (distinctPathes.isNotEmpty() && currentHeight < 9)
 
-        return pointsOnPathes.size
+        return distinctPathes.toSet()
+    }
+
+    fun distinctHikingTrails(): Int {
+        return trailHeads().sumOf {
+            distinctTrails(it).size
+        }
     }
 }

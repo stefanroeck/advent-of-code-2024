@@ -9,5 +9,7 @@ fun main() {
 
     val score = HikingTrails(rows).score()
     println("Hiking Trails score: $score")
-    
+
+    val distinctPathesRating = HikingTrails(rows).distinctHikingTrails()
+    println("Hiking Trails distinct pathes rating: $distinctPathesRating")
 }
