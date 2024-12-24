@@ -73,4 +73,12 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
 
     fun points() = points.keys
 
+    fun pointsFor(thing: T): Set<Point> = points.filter { it.value == thing }.keys
+
+    fun adjacentPoints(
+        point: Point,
+        directions: Set<Direction> = setOf(Direction.Up, Direction.Right, Direction.Down, Direction.Left)
+    ): Set<Point> = directions.map { point.translate(1, it) }.filter { it within this }.toSet()
+
+
 }
