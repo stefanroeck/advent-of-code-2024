@@ -11,4 +11,8 @@ fun main() {
 
     val checksum = DiskFragmenter.createMapDefragAndReturnChecksum(rows.first())
     println("Checksum after defrag: $checksum")
+
+    val checksumWholeFilesOnly = DiskFragmenter.createMapDefragAndReturnChecksumWholeFiles(rows.first())
+    println("Checksum after defrag whole files only: $checksumWholeFilesOnly")
+
 }

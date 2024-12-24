@@ -50,12 +50,27 @@ class DiskFragmenterTest {
     fun `defrag disk map`(diskMap: String, expected: String) {
         assertEquals(parseDiskmap(expected), DiskFragmenter.defrag(parseDiskmap(diskMap)))
     }
+    
+    @Test
+    fun `defrag disk map whole files only`() {
+        val diskMap = "00...111...2...333.44.5555.6666.777.888899"
+        val expected = "00992111777.44.333....5555.6666.....8888.."
+
+        assertEquals(parseDiskmap(expected), DiskFragmenter.defragWholeFilesOnly(parseDiskmap(diskMap)))
+    }
 
     @Test
-    fun `create disk map, degrag and return checksum`() {
+    fun `create disk map, defrag and return checksum`() {
         val input = "2333133121414131402"
 
         assertEquals(1928, DiskFragmenter.createMapDefragAndReturnChecksum(input))
+    }
+
+    @Test
+    fun `create disk map, defrag and return checksum moving whole files only`() {
+        val input = "2333133121414131402"
+
+        assertEquals(2858, DiskFragmenter.createMapDefragAndReturnChecksumWholeFiles(input))
     }
 
     private fun parseDiskmap(diskMap: String) =
