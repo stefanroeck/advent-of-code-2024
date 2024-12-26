@@ -1,10 +1,18 @@
 package util
 
+import java.util.EnumSet
 import kotlin.math.sign
 
 class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
 
-    enum class Direction { Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft }
+    enum class Direction {
+        Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft;
+
+        companion object {
+            fun xyDirections() = EnumSet.of(Left, Right, Up, Down)
+        }
+    }
+
     data class Vector(val dx: Int, val dy: Int) {
         fun invert() = Vector(dx = this.dx * -1, dy = this.dy * -1)
     }
@@ -49,6 +57,10 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
             return col >= 0 && this.col < map.width && row >= 0 && this.row < map.height
         }
 
+        infix fun <T> outside(map: MapOfThings<T>): Boolean {
+            return !within(map)
+        }
+
         override fun compareTo(other: Point): Int {
             return if (row != other.row) row.compareTo(other.row) else (col.compareTo(other.col))
         }
@@ -77,7 +89,7 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
 
     fun adjacentPoints(
         point: Point,
-        directions: Set<Direction> = setOf(Direction.Up, Direction.Right, Direction.Down, Direction.Left)
+        directions: Set<Direction> = Direction.xyDirections()
     ): Set<Point> = directions.map { point.translate(1, it) }.filter { it within this }.toSet()
 
 
