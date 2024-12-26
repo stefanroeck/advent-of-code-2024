@@ -29,9 +29,11 @@ class StonesOnPlutoTest {
 
     @Test
     fun `even more blinks on sample input`() {
-        val result = StonesOnPluto.blink("125 17", 25)
+        val input = "125 17"
+        val result = StonesOnPluto.blink(input, 25)
 
         assertEquals(55312, result.split(" ").size)
+        assertEquals(55312, StonesOnPluto.countBlinks(input, 25))
     }
 
 }
