@@ -40,4 +40,10 @@ class MapOfThingsTest {
         assertFalse(Point(2, 0) within map)
     }
 
+    @Test
+    fun gradient() {
+        assertEquals(1.0, Point.gradient(Point(0, 0), Point(2, 2)))
+        assertEquals(2.0, Point.gradient(Point(1, 2), Point(2, 4)))
+    }
+
 }

@@ -35,6 +35,10 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
                 return points.toList()
             }
 
+            fun gradient(start: Point, end: Point): Double {
+                return (end.row - start.row).toDouble() / (end.col - start.col).toDouble()
+            }
+
             fun vector(start: Point, end: Point): Vector = Vector(dx = end.col - start.col, dy = end.row - start.row)
         }
 
