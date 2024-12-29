@@ -6,13 +6,19 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import util.MapOfThings.Point
 import util.MapOfThings.Vector
+import kotlin.test.assertSame
 
 class MapOfThingsTest {
 
     @Test
     fun vectors() {
-        val vector = Vector(1, 2)
-        assertEquals(vector, vector.invert().invert())
+        assertEquals(Vector(1, 2), Vector(1, 2).invert().invert())
+
+        assertEquals(Vector(3, 4), Vector(12, 16).reduce())
+        assertEquals(Vector(1, 2), Vector(5, 10).reduce())
+        val nonReducibleVector = Vector(1, 5)
+        assertSame(nonReducibleVector, nonReducibleVector.reduce())
+
     }
 
     @Test

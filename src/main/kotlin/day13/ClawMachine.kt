@@ -2,8 +2,6 @@ package day13
 
 import util.MapOfThings.Point
 import util.MapOfThings.Vector
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.math.max
 
 data class Button(val name: String, val deltaX: Int, val deltaY: Int, val tokenCosts: Int) {
     fun vector() = Vector(deltaX, deltaY)
@@ -17,8 +15,6 @@ private val priceButtonRegex = Regex("""^Prize: X=(\d+), Y=(\d+)$""")
 private const val MAX_BUTTON_PUSHES = 100
 
 class ClawMachine(private val lines: List<String>) {
-
-    private val recursionCounter = AtomicLong(0)
 
     fun calculateCostsForFirstMachine(): Int? {
         val (buttonA, buttonB, price) = parseMachineSpec(lines)
@@ -52,93 +48,32 @@ class ClawMachine(private val lines: List<String>) {
         val start = Point(0, 0)
         val target = Point(price.x, price.y)
 
-        if (checkTargetCoordinatesNotReachableWithMaxCosts(buttonA, buttonB, target)) {
-            return null
-        }
+        // order of buttonA and buttonB doesn't matter, so walk along
+        // buttonA vector until the vector from current point to target point equals buttonB vector
 
-        return navigateToTargetRecursively(start, target, mutableMapOf(buttonA to 0, buttonB to 0), 0)
-    }
+        val targetVectorB = buttonB.vector().reduce()
 
-    private fun checkIsTargetGradientsOutsideOfRange(
-        start: Point,
-        buttonA: Button,
-        buttonB: Button,
-        target: Point
-    ): Boolean {
-        val gradientVectorA = Point.gradient(start, start.translate(Vector(buttonA.deltaX, buttonA.deltaY)))
-        val gradientVectorB = Point.gradient(start, start.translate(Vector(buttonB.deltaX, buttonB.deltaY)))
-        val gradientTarget = Point.gradient(start, target)
+        var vectorToTarget = Point.vector(start, target)
+        var currentPoint = start
+        var costs = 0
+        var iterations = 0
 
-        var targetOutsideRange = false
-        with(listOf(gradientVectorA, gradientVectorB)) {
-            if (all { gradientTarget > it } || all { gradientTarget < it }) {
-                //println("Target price unreachable with buttons. $gradientTarget outside of ${this.sorted()}")
-                targetOutsideRange = true
+        while (vectorToTarget != targetVectorB) {
+            currentPoint = currentPoint.translate(buttonA.vector())
+            costs += buttonA.tokenCosts
+            vectorToTarget = Point.vector(currentPoint, target).reduce()
+
+            if (iterations++ >= MAX_BUTTON_PUSHES || vectorToTarget.dx < 0 || vectorToTarget.dy < 0) {
+                // escape function, no solution
+                return null
             }
         }
-        return targetOutsideRange
+
+        while (currentPoint != target) {
+            currentPoint = currentPoint.translate(buttonB.vector())
+            costs += buttonB.tokenCosts
+        }
+
+        return costs
     }
-
-    private fun checkTargetCoordinatesNotReachableWithMaxCosts(
-        buttonA: Button,
-        buttonB: Button,
-        target: Point
-    ): Boolean {
-        val maximumReachablePoint = Point(
-            max(buttonA.deltaX, buttonB.deltaX) * MAX_BUTTON_PUSHES,
-            max(buttonA.deltaY, buttonB.deltaY) * MAX_BUTTON_PUSHES
-        )
-
-        if (target > maximumReachablePoint) {
-            println("Target $target is beyond max reachable point $maximumReachablePoint")
-            return true
-        }
-        return false
-    }
-
-    private fun navigateToTargetRecursively(
-        start: Point, target: Point, buttonsWithPushes: Map<Button, Int>, costs: Int
-    ): Int? {
-        if (start == target) {
-            println("Found target $start")
-            return costs
-        }
-
-        if (start.col >= target.col || start.row >= target.row) {
-            return null
-        }
-
-        if (buttonsWithPushes.any { it.value >= MAX_BUTTON_PUSHES }) {
-            return null
-        }
-
-        val buttonA = buttonsWithPushes.keys.first { it.name == "A" }
-        val buttonB = buttonsWithPushes.keys.first { it.name == "B" }
-        if (checkIsTargetGradientsOutsideOfRange(start, buttonA, buttonB, target)) {
-            return null
-        }
-
-        if (recursionCounter.incrementAndGet() % 1_000_000L == 0L) {
-            println(
-                "Checking $start at current costs $costs and target $target with pushes: ${
-                    buttonsWithPushes.entries.joinToString { it.key.name + "=" + it.value }
-                }"
-            )
-        }
-
-        buttonsWithPushes.forEach { (button) ->
-            val result = navigateToTargetRecursively(
-                start.translate(button.vector()),
-                target,
-                buttonsWithPushes.map { it.key to it.value + if (button == it.key) 1 else 0 }.toMap(),
-                costs + button.tokenCosts
-            )
-            if (result != null) {
-                return result
-            }
-        }
-        return null
-    }
-
-
 }

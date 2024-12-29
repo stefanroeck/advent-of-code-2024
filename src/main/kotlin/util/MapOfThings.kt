@@ -14,7 +14,18 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
     }
 
     data class Vector(val dx: Int, val dy: Int) {
+
+        /** Returns the Greatest Common Divisor */
+        private fun gcd(a: Int, b: Int): Int {
+            return if (b == 0) a else gcd(b, a % b)
+        }
+
         fun invert() = Vector(dx = this.dx * -1, dy = this.dy * -1)
+        fun reduce(): Vector {
+            val gcd = gcd(dx, dy)
+            return if (gcd == 1) this else Vector(dx / gcd, dy / gcd)
+
+        }
     }
 
     data class Point(val col: Int, val row: Int) : Comparable<Point> {

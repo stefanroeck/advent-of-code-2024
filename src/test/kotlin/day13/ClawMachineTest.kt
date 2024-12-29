@@ -78,7 +78,7 @@ class ClawMachineTest {
     }
 
     @Test
-    fun `machine with high values (and unclear solution)`() {
+    fun `machine with high values (and no solution)`() {
         val input = """
             Button A: X+46, Y+78
             Button B: X+47, Y+19
@@ -88,11 +88,11 @@ class ClawMachineTest {
         val clawMachine = ClawMachine(InputUtils.parseLines(input))
         val tokenCosts = clawMachine.calculateCostsForFirstMachine()
 
-        assertNull(tokenCosts) // ??
+        assertNull(tokenCosts)
     }
 
     @Test
-    fun `sum of prices for mulitple machines`() {
+    fun `sum of prices for multiple machines`() {
         val input = """
             Button A: X+94, Y+34
             Button B: X+22, Y+67
