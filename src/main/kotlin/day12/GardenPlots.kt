@@ -26,12 +26,12 @@ data class Region(val plant: Plant, val points: MutableSet<Point>, val map: MapO
             return horizontalSides.size + verticalSides.size
         }
 
-    private fun horizontalSides(rowPoints: List<Point>, row: Int, direction: Direction) = rowPoints
+    private fun horizontalSides(rowPoints: List<Point>, row: Long, direction: Direction) = rowPoints
         .map { it.col }
         .filter { col -> map.thingAt(Point(col, row).translate(1, direction)) != plant }
         .consecutiveNumbers()
 
-    private fun verticalSides(colPoints: List<Point>, col: Int, direction: Direction) = colPoints
+    private fun verticalSides(colPoints: List<Point>, col: Long, direction: Direction) = colPoints
         .map { it.row }
         .filter { row -> map.thingAt(Point(col, row).translate(1, direction)) != plant }
         .consecutiveNumbers()
@@ -126,7 +126,7 @@ class GardenPlots(lines: List<String>) {
     }
 }
 
-fun List<Int>.consecutiveNumbers(): List<List<Int>> {
+fun List<Long>.consecutiveNumbers(): List<List<Number>> {
     return sorted().fold(mutableListOf()) { result, int ->
         if (result.isEmpty()) {
             result.add(listOf(int))

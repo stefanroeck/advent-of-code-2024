@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 import util.InputUtils
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ClawMachineTest {
 
@@ -115,4 +116,48 @@ class ClawMachineTest {
 
         assertEquals(480, clawMachine.calculateCostsForSolvableMachines())
     }
+
+    @Test
+    fun `measure costs after conversion error 1st and 3rd`() {
+        val inputsNoSolution = """
+            Button A: X+94, Y+34
+            Button B: X+22, Y+67
+            Prize: X=8400, Y=5400
+
+            Button A: X+17, Y+86
+            Button B: X+84, Y+37
+            Prize: X=7870, Y=6450
+        """.trimIndent()
+
+        val clawMachine = ClawMachine(InputUtils.parseLines(inputsNoSolution))
+
+        assertEquals(0, clawMachine.calculateCostsForSolvableMachinesWithCorrectedPriceCoordinates())
+    }
+
+    @Test
+    fun `measure costs after conversion error 2nd`() {
+        val input = """
+            Button A: X+26, Y+66
+            Button B: X+67, Y+21
+            Prize: X=12748, Y=12176
+        """.trimIndent()
+
+        val clawMachine = ClawMachine(InputUtils.parseLines(input))
+
+        assertTrue(clawMachine.calculateCostsForSolvableMachinesWithCorrectedPriceCoordinates() > 0)
+    }
+
+    @Test
+    fun `measure costs after conversion error 4th`() {
+        val input = """
+            Button A: X+69, Y+23
+            Button B: X+27, Y+71
+            Prize: X=18641, Y=10279
+        """.trimIndent()
+
+        val clawMachine = ClawMachine(InputUtils.parseLines(input))
+
+        assertTrue(clawMachine.calculateCostsForSolvableMachinesWithCorrectedPriceCoordinates() > 0)
+    }
+
 }

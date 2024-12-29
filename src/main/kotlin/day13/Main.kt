@@ -10,4 +10,7 @@ fun main() {
     val costs = ClawMachine(rows).calculateCostsForSolvableMachines()
     println("Lowest price sum for all machines: $costs")
 
+    // too high: 94.467.057.936.736
+    val costsWithCorrectCoordinates = ClawMachine(rows).calculateCostsForSolvableMachinesWithCorrectedPriceCoordinates()
+    println("Lowest price sum for all fixed coordinates machines: $costsWithCorrectCoordinates")
 }

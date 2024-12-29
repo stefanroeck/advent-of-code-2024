@@ -113,17 +113,18 @@ class GardenPlotsTest {
     @Test
     fun consecutiveNumbers() {
         assertEquals(
-            listOf(listOf(1, 2), listOf(4)),
-            listOf(1, 2, 4).consecutiveNumbers()
+            listOf(listOfLongs(1, 2), listOfLongs(4)),
+            listOfLongs(1, 2, 4).consecutiveNumbers()
         )
         assertEquals(
-            listOf(listOf(1, 2, 3)),
-            listOf(3, 2, 1).consecutiveNumbers()
+            listOf(listOfLongs(1, 2, 3)),
+            listOfLongs(3, 2, 1).consecutiveNumbers()
         )
         assertEquals(
-            listOf(listOf(1), listOf(3), listOf(5)),
-            listOf(5, 1, 3).consecutiveNumbers()
+            listOf(listOfLongs(1), listOfLongs(3), listOfLongs(5)),
+            listOfLongs(5, 1, 3).consecutiveNumbers()
         )
     }
-
 }
+
+private fun listOfLongs(vararg ints: Int): List<Long> = ints.map { it.toLong() }
