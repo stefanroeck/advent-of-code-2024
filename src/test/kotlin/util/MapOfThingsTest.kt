@@ -33,6 +33,30 @@ class MapOfThingsTest {
     }
 
     @Test
+    fun translatedWithinBounds() {
+        assertEquals(
+            Point(1, 2),
+            Point(0, 0).translateWithinBounds(Vector(1, 2), 6, 4)
+        )
+        assertEquals(
+            Point(2, 0),
+            Point(1, 2).translateWithinBounds(Vector(1, 2), 6, 4)
+        )
+        assertEquals(
+            Point(0, 0),
+            Point(5, 3).translateWithinBounds(Vector(1, 1), 6, 4)
+        )
+        assertEquals(
+            Point(1, 3),
+            Point(1, 1).translateWithinBounds(Vector(0, -2), 6, 4)
+        )
+        assertEquals(
+            Point(5, 1),
+            Point(1, 1).translateWithinBounds(Vector(-2, 0), 6, 4)
+        )
+    }
+
+    @Test
     fun pointsAndMaps() {
         val points = listOf(Point(0, 0), Point(1, 0), Point(0, 1), Point(1, 1))
         val map = MapOfThings(points.associateWith { '.' }, 2, 2)

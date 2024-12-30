@@ -74,12 +74,32 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
             return col >= 0 && this.col < map.width && row >= 0 && this.row < map.height
         }
 
+        fun within(topLeft: Point, bottomRight: Point): Boolean {
+            return col >= topLeft.col && this.col <= bottomRight.col && row >= topLeft.row && this.row <= bottomRight.row
+        }
+
         infix fun <T> outside(map: MapOfThings<T>): Boolean {
             return !within(map)
         }
 
         override fun compareTo(other: Point): Int {
             return if (row != other.row) row.compareTo(other.row) else (col.compareTo(other.col))
+        }
+
+        fun translateWithinBounds(vector: Vector, width: Long, height: Long) =
+            Point(
+                addWithOverflow(col, vector.dx, width),
+                addWithOverflow(row, vector.dy, height)
+            )
+
+        private fun addWithOverflow(old: Long, delta: Long, max: Long): Long {
+            check(delta < max) { "Multi line wrap not supported" }
+            val new = old + delta
+            return if (new >= max) {
+                new % max
+            } else if (new < 0) {
+                max + new
+            } else new
         }
     }
 
