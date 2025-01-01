@@ -3,7 +3,7 @@ package util
 import java.util.EnumSet
 import kotlin.math.sign
 
-class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
+data class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val height: Int) {
 
     enum class Direction {
         Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft;
@@ -121,6 +121,13 @@ class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val heig
     fun pointCount() = points.size
 
     fun points() = points.keys
+
+    fun updatedMap(updater: (mutablePointMap: MutableMap<Point, T>) -> Unit): MapOfThings<T> {
+        with(points.toMutableMap()) {
+            updater.invoke(this)
+            return copy(points = this)
+        }
+    }
 
     fun pointsFor(thing: T): Set<Point> = points.filter { it.value == thing }.keys
 
