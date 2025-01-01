@@ -29,7 +29,7 @@ class WarehouseTest {
     }
 
     @Test
-    fun `larger sample warehouse robot`() {
+    fun `larger sample warehouse robot for normal map`() {
         val input = """
             ##########
             #..O..O.O#
@@ -70,6 +70,8 @@ class WarehouseTest {
             #..O..#
             #.....#
             #######
+
+            <vv<<^^<<^^
         """.trimIndent()
 
         val expectedOutput = """
@@ -86,6 +88,38 @@ class WarehouseTest {
 
         val widerVersion: String = warehouse.mapAsString()
         assertEquals(expectedOutput, widerVersion)
+        assertEquals(618, warehouse.walkAroundAndReturnSumOfGpsCoordinate())
     }
 
+    @Test
+    fun `larger sample warehouse robot for wide map`() {
+        val input = """
+            ##########
+            #..O..O.O#
+            #......O.#
+            #.OO..O.O#
+            #..O@..O.#
+            #O#..O...#
+            #O..O..O.#
+            #.OO.O.OO#
+            #....O...#
+            ##########
+
+            <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
+            vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
+            ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
+            <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
+            ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
+            ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
+            >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
+            <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
+            ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
+            v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
+        """.trimIndent()
+
+        val warehouse = Warehouse(InputUtils.parseLines(input), mapType = WIDE)
+
+        val gpsCoordinateSum = warehouse.walkAroundAndReturnSumOfGpsCoordinate()
+        assertEquals(9021, gpsCoordinateSum)
+    }
 }

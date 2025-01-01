@@ -4,16 +4,18 @@ import day15.MapType.NORMAL
 import day15.MapType.WIDE
 import util.MapOfThings
 import util.MapOfThings.Direction
+import util.MapOfThings.Direction.Left
+import util.MapOfThings.Direction.Right
 import util.MapOfThings.Point
 
 sealed interface WarehouseBlock
+sealed interface WarehouseBox
 
 data object Wall : WarehouseBlock
 
-data object Box : WarehouseBlock
-
-data object LeftBox : WarehouseBlock
-data object RightBox : WarehouseBlock
+data object Box : WarehouseBlock, WarehouseBox
+data object LeftBox : WarehouseBlock, WarehouseBox
+data object RightBox : WarehouseBlock, WarehouseBox
 
 enum class MapType { NORMAL, WIDE }
 
@@ -81,8 +83,8 @@ class Warehouse(private val inputLines: List<String>, private val mapType: MapTy
     private val movementDirectives: List<Direction> by lazy {
         movementLines.joinToString("").map { char ->
             when (char) {
-                '<' -> Direction.Left
-                '>' -> Direction.Right
+                '<' -> Left
+                '>' -> Right
                 '^' -> Direction.Up
                 'v' -> Direction.Down
                 else -> {
@@ -103,17 +105,13 @@ class Warehouse(private val inputLines: List<String>, private val mapType: MapTy
         var robotPosition = initialRobotPosition
         movementDirectives.forEach { direction ->
             val nextPosition = robotPosition.translate(1, direction)
-            robotPosition = when (updatedMap.thingAt(nextPosition)) {
-                is Box -> {
-                    var lookAhead: Point = nextPosition
-                    val boxesToMove = mutableSetOf<Point>()
-                    do {
-                        boxesToMove.add(lookAhead)
-                        lookAhead = lookAhead.translate(1, direction)
-                    } while (isNeitherWallNorEmpty(updatedMap, lookAhead))
-                    if (updatedMap.thingAt(lookAhead) == null) {
+            val nextBlock = updatedMap.thingAt(nextPosition)
+            robotPosition = when (nextBlock) {
+                is Box, LeftBox, RightBox -> {
+                    val adjacentBoxesToBeMoved = updatedMap.adjacentBoxesToBeMoved(nextPosition, direction)
+                    if (updatedMap.canMoveBoxes(adjacentBoxesToBeMoved, direction)) {
                         // found empty space, move all boxes
-                        updatedMap = newMapWithMovedBoxes(boxesToMove, direction, updatedMap)
+                        updatedMap = updatedMap.newMapWithMovedBoxes(adjacentBoxesToBeMoved, direction)
                         nextPosition
                     } else {
                         // hit wall or left map, don't move
@@ -123,35 +121,67 @@ class Warehouse(private val inputLines: List<String>, private val mapType: MapTy
 
                 is Wall -> robotPosition
                 null -> nextPosition
-                else -> TODO()
             }
         }
         return updatedMap
     }
 
-    private fun isNeitherWallNorEmpty(currentMap: MapOfThings<WarehouseBlock>, lookAhead: Point) =
-        currentMap.thingAt(lookAhead) != null && (currentMap.thingAt(lookAhead) != Wall) && lookAhead within currentMap
-
-    private fun newMapWithMovedBoxes(
+    private fun MapOfThings<WarehouseBlock>.newMapWithMovedBoxes(
         boxesToMove: Set<Point>,
         direction: Direction,
-        oldMap: MapOfThings<WarehouseBlock>
     ): MapOfThings<WarehouseBlock> {
-        val movedBoxes = boxesToMove.map { it.translate(1, direction) }
-        return oldMap.updatedMap { pointMap ->
+        val movedBoxes = boxesToMove
+            .map { it to thingAt(it)!! }
+            .map { it.first.translate(1, direction) to it.second }
+        return updatedMap { pointMap ->
             boxesToMove.forEach(pointMap::remove)
-            movedBoxes.forEach { pointMap[it] = Box }
+            movedBoxes.forEach { pointMap[it.first] = it.second }
         }
     }
 
     private fun MapOfThings<WarehouseBlock>.sumOfGpsCoordinates() = points()
         .sumOf { point ->
-            if (thingAt(point) == Box) {
+            if (thingAt(point) == Box || thingAt(point) == LeftBox) {
                 100 * point.row + point.col
             } else {
                 0L
             }
         }
+
+    private fun MapOfThings<WarehouseBlock>.canMoveBoxes(boxesToBeMoved: Set<Point>, direction: Direction) =
+        boxesToBeMoved
+            .map { it.translate(1, direction) }
+            .all { it within this && (thingAt(it) == null || thingAt(it) is WarehouseBox) }
+
+    private fun MapOfThings<WarehouseBlock>.adjacentBoxesToBeMoved(
+        boxPosition: Point,
+        direction: Direction
+    ): Set<Point> {
+        val allBoxesToBeMoved = mutableSetOf<Point>()
+
+        val nextPositionsToBeChecked = mutableListOf(boxPosition)
+        do {
+            nextPositionsToBeChecked.removeFirstOrNull()?.let { nextPosition ->
+                val box = thingAt(nextPosition)
+                if (box is WarehouseBox && nextPosition within this) {
+                    val allBoxPositions = if (direction.isVertical()) when (box) {
+                        // we only need to consider box widths for vertical movement
+                        Box -> listOf(nextPosition)
+                        LeftBox -> listOf(nextPosition, nextPosition.translate(1, Right))
+                        RightBox -> listOf(nextPosition, nextPosition.translate(1, Left))
+                        else -> throw IllegalStateException("$box is not a valid box")
+                    } else {
+                        // for horizontal movements, just treat two-width boxes like two separate ones
+                        listOf(nextPosition)
+                    }
+                    allBoxesToBeMoved.addAll(allBoxPositions)
+
+                    nextPositionsToBeChecked.addAll(allBoxPositions.map { it.translate(1, direction) })
+                }
+            }
+        } while (nextPositionsToBeChecked.isNotEmpty())
+        return allBoxesToBeMoved
+    }
 
     fun mapAsString(): String {
         val result = StringBuilder()

@@ -8,8 +8,13 @@ data class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val
     enum class Direction {
         Left, Right, Up, Down, TopRight, BottomRight, BottomLeft, TopLeft;
 
+        fun isHorizontal() = horizontalDirections().contains(this)
+        fun isVertical() = verticalDirections().contains(this)
+
         companion object {
-            fun xyDirections() = EnumSet.of(Left, Right, Up, Down)
+            fun horizontalDirections() = EnumSet.of(Left, Right)
+            fun verticalDirections() = EnumSet.of(Up, Down)
+            fun xyDirections() = horizontalDirections() + verticalDirections()
         }
     }
 
