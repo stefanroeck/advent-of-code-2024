@@ -1,5 +1,7 @@
 package day15
 
+import day15.MapType.NORMAL
+import day15.MapType.WIDE
 import util.MapOfThings
 import util.MapOfThings.Direction
 import util.MapOfThings.Point
@@ -10,8 +12,13 @@ data object Wall : WarehouseBlock
 
 data object Box : WarehouseBlock
 
+data object LeftBox : WarehouseBlock
+data object RightBox : WarehouseBlock
 
-class Warehouse(private val inputLines: List<String>) {
+enum class MapType { NORMAL, WIDE }
+
+
+class Warehouse(private val inputLines: List<String>, private val mapType: MapType = NORMAL) {
 
     private val pointLines by lazy { inputLines.filter { it.startsWith('#') } }
     private val movementLines by lazy { inputLines.filterNot { it.startsWith('#') }.filterNot { it.isEmpty() } }
@@ -21,7 +28,7 @@ class Warehouse(private val inputLines: List<String>) {
         pointLines.forEachIndexed { row, line ->
             line.forEachIndexed { col, char ->
                 if (char == '@') {
-                    result = Point(col, row)
+                    result = Point(if (mapType == NORMAL) col else col * 2, row)
                 }
             }
         }
@@ -29,6 +36,19 @@ class Warehouse(private val inputLines: List<String>) {
     }
 
     private val map: MapOfThings<WarehouseBlock> by lazy {
+        val points = when (mapType) {
+            NORMAL -> pointsForNormalMapType()
+            WIDE -> pointsForWideMapType()
+        }
+
+        val width = when (mapType) {
+            NORMAL -> pointLines.first().length
+            WIDE -> pointLines.first().length * 2
+        }
+        MapOfThings(points, width, pointLines.size)
+    }
+
+    private fun pointsForNormalMapType(): MutableMap<Point, WarehouseBlock> {
         val points = mutableMapOf<Point, WarehouseBlock>()
         pointLines.forEachIndexed { row, line ->
             line.forEachIndexed { col, char ->
@@ -39,7 +59,23 @@ class Warehouse(private val inputLines: List<String>) {
                 }
             }
         }
-        MapOfThings(points, pointLines.first().length, pointLines.size)
+        return points
+    }
+
+    private fun pointsForWideMapType(): MutableMap<Point, WarehouseBlock> {
+        val points = mutableMapOf<Point, WarehouseBlock>()
+        pointLines.forEachIndexed { row, line ->
+            line.forEachIndexed { col, char ->
+                if (char == '#') {
+                    points[Point(2 * col, row)] = Wall
+                    points[Point(2 * col + 1, row)] = Wall
+                } else if (char == 'O') {
+                    points[Point(2 * col, row)] = LeftBox
+                    points[Point(2 * col + 1, row)] = RightBox
+                }
+            }
+        }
+        return points
     }
 
     private val movementDirectives: List<Direction> by lazy {
@@ -87,6 +123,7 @@ class Warehouse(private val inputLines: List<String>) {
 
                 is Wall -> robotPosition
                 null -> nextPosition
+                else -> TODO()
             }
         }
         return updatedMap
@@ -115,4 +152,27 @@ class Warehouse(private val inputLines: List<String>) {
                 0L
             }
         }
+
+    fun mapAsString(): String {
+        val result = StringBuilder()
+        (0..<map.height).forEach { row ->
+            (0..<map.width).forEach { col ->
+                val point = Point(col, row)
+                if (initialRobotPosition == point) {
+                    result.append('@')
+                } else {
+                    val char = when (map.thingAt(point)) {
+                        Box -> 'O'
+                        LeftBox -> '['
+                        RightBox -> ']'
+                        Wall -> '#'
+                        null -> '.'
+                    }
+                    result.append(char)
+                }
+            }
+            result.append("\n")
+        }
+        return result.toString().trim()
+    }
 }

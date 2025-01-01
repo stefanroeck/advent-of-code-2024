@@ -1,5 +1,6 @@
 package day15
 
+import day15.MapType.WIDE
 import org.junit.jupiter.api.Test
 import util.InputUtils
 import kotlin.test.assertEquals
@@ -57,6 +58,34 @@ class WarehouseTest {
 
         val gpsCoordinateSum = warehouse.walkAroundAndReturnSumOfGpsCoordinate()
         assertEquals(10092, gpsCoordinateSum)
+    }
+
+    @Test
+    fun `enlarge simple warehouse to wider version`() {
+        val input = """
+            #######
+            #...#.#
+            #.....#
+            #..OO@#
+            #..O..#
+            #.....#
+            #######
+        """.trimIndent()
+
+        val expectedOutput = """
+            ##############
+            ##......##..##
+            ##..........##
+            ##....[][]@.##
+            ##....[]....##
+            ##..........##
+            ##############
+        """.trimIndent()
+
+        val warehouse = Warehouse(InputUtils.parseLines(input), mapType = WIDE)
+
+        val widerVersion: String = warehouse.mapAsString()
+        assertEquals(expectedOutput, widerVersion)
     }
 
 }
