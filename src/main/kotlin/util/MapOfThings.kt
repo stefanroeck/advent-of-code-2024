@@ -10,6 +10,16 @@ data class MapOfThings<T>(private val points: Map<Point, T>, val width: Int, val
 
         fun isHorizontal() = horizontalDirections().contains(this)
         fun isVertical() = verticalDirections().contains(this)
+        fun inverse() = when (this) {
+            Left -> Right
+            Right -> Left
+            Up -> Down
+            Down -> Up
+            TopRight -> BottomLeft
+            BottomRight -> TopLeft
+            BottomLeft -> TopRight
+            TopLeft -> BottomRight
+        }
 
         companion object {
             fun horizontalDirections() = EnumSet.of(Left, Right)
