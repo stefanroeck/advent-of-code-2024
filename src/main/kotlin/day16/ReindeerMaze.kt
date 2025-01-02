@@ -8,6 +8,8 @@ private enum class Maze {
     Wall, Start, End, Empty
 }
 
+private data class PathThroughMaze(val path: List<Point>, val costs: Long)
+
 class ReindeerMaze(private val lines: List<String>) {
 
     private val map: MapOfThings<Maze> by lazy {
@@ -31,12 +33,26 @@ class ReindeerMaze(private val lines: List<String>) {
     }
 
     fun shortestPathCost(): Long {
-        val solvedPathsCosts = mutableSetOf<Long>()
+        val solvedPaths = mutableListOf<PathThroughMaze>()
         val visitedJunctionsWithLowestCosts = mutableMapOf<Point, Long>()
 
-        move(startPosition, Direction.Right, visitedJunctionsWithLowestCosts, 0, solvedPathsCosts)
+        move(startPosition, Direction.Right, visitedJunctionsWithLowestCosts, 0, solvedPaths, listOf(startPosition))
 
-        return solvedPathsCosts.minOf { it }
+        return solvedPaths.minOf { it.costs }
+    }
+
+    fun seatsOnShortestPaths(): Long {
+        val solvedPaths = mutableListOf<PathThroughMaze>()
+        val visitedJunctionsWithLowestCosts = mutableMapOf<Point, Long>()
+
+        move(startPosition, Direction.Right, visitedJunctionsWithLowestCosts, 0, solvedPaths, emptyList())
+
+        val shortestPathCosts = solvedPaths.minOf { it.costs }
+        val distinctPoints = solvedPaths
+            .filter { it.costs == shortestPathCosts }
+            .flatMap { it.path }
+            .distinct()
+        return distinctPoints.count().toLong()
     }
 
     private fun move(
@@ -44,11 +60,12 @@ class ReindeerMaze(private val lines: List<String>) {
         direction: Direction,
         visitedJunctionsWithLowestCosts: MutableMap<Point, Long>,
         costs: Long,
-        solvedPathsCosts: MutableSet<Long>
+        solvedPathsCosts: MutableList<PathThroughMaze>,
+        path: List<Point>
     ) {
         if (position == endPosition) {
             println("Found path for costs $costs")
-            solvedPathsCosts.add(costs)
+            solvedPathsCosts.add(PathThroughMaze(path, costs))
             return
         }
 
@@ -58,7 +75,7 @@ class ReindeerMaze(private val lines: List<String>) {
             }
         }
 
-        if (solvedPathsCosts.any { costs >= it }) {
+        if (solvedPathsCosts.any { costs > it.costs }) {
             return // already found a cheaper way
         }
 
@@ -77,14 +94,21 @@ class ReindeerMaze(private val lines: List<String>) {
 
         // traverse same direction first as way cheaper than turning
         val lowCostDirection = possibleDirections.firstOrNull { it.first == direction }?.let {
-            move(it.second, direction, visitedJunctionsWithLowestCosts, costs + 1, solvedPathsCosts)
+            move(it.second, direction, visitedJunctionsWithLowestCosts, costs + 1, solvedPathsCosts, path + it.second)
             it
         }
 
         possibleDirections
             .filter { it != lowCostDirection }
             .forEach {
-                move(it.second, it.first, visitedJunctionsWithLowestCosts, costs + 1000 + 1, solvedPathsCosts)
+                move(
+                    it.second,
+                    it.first,
+                    visitedJunctionsWithLowestCosts,
+                    costs + 1000 + 1,
+                    solvedPathsCosts,
+                    path + it.second
+                )
             }
 
     }

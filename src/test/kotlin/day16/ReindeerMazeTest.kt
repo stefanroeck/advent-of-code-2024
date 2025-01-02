@@ -29,6 +29,7 @@ class ReindeerMazeTest {
         val reindeerMaze = ReindeerMaze(InputUtils.parseLines(input))
 
         assertEquals(7036, reindeerMaze.shortestPathCost())
+        assertEquals(45, reindeerMaze.seatsOnShortestPaths())
     }
 
     @Test
@@ -56,5 +57,6 @@ class ReindeerMazeTest {
         val reindeerMaze = ReindeerMaze(InputUtils.parseLines(input))
 
         assertEquals(11048, reindeerMaze.shortestPathCost())
+        assertEquals(64, reindeerMaze.seatsOnShortestPaths())
     }
 }
