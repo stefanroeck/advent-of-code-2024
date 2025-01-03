@@ -7,6 +7,11 @@ fun main() {
     val input = FileUtil.readFile("/day16/input.txt")
     val rows = parseLines(input)
 
-    val cost = ReindeerMaze(rows).shortestPathCost()
+    val reindeerMaze = ReindeerMaze(rows)
+
+    val cost = reindeerMaze.shortestPathCost()
     println("Shortest path cost: $cost")
+    
+    val seats = reindeerMaze.seatsOnShortestPaths()
+    println("Shortest path seats: $seats")
 }

@@ -8,6 +8,62 @@ private enum class Maze {
     Wall, Start, End, Empty
 }
 
+private data class PointWithDirection(val point: Point, val direction: Direction)
+
+private interface PathOptimizationStrategy {
+    fun abortTraversal(pointWithDirection: PointWithDirection, currentCosts: Long): Boolean
+}
+
+private class CheckVisitedPointsForLowerCosts : PathOptimizationStrategy {
+    private val visitedPointsWithLowestCosts = mutableMapOf<Point, Long>()
+    override fun abortTraversal(pointWithDirection: PointWithDirection, currentCosts: Long): Boolean {
+        val result = visitedPointsWithLowestCosts[pointWithDirection.point]?.let { previousCosts ->
+            previousCosts < currentCosts
+        } ?: false
+        if (result) {
+            return true
+        }
+        visitedPointsWithLowestCosts[pointWithDirection.point] = currentCosts
+        return false
+    }
+}
+
+private class CheckVisitedPointsWithDirectionForLowerCosts : PathOptimizationStrategy {
+    private val visitedPointsWithLowestCosts = mutableMapOf<PointWithDirection, Long>()
+    override fun abortTraversal(pointWithDirection: PointWithDirection, currentCosts: Long): Boolean {
+        val result = visitedPointsWithLowestCosts[pointWithDirection]?.let { previousCosts ->
+            // we've been here for lower costs already. if the costs are the same,
+            // we continue as we need all paths
+            previousCosts < currentCosts
+        } ?: false
+        if (result) {
+            return true
+        }
+        visitedPointsWithLowestCosts[pointWithDirection] = currentCosts
+        return false
+    }
+}
+
+private class CombinedOptimizationStrategy(private val delegates: List<PathOptimizationStrategy>) :
+    PathOptimizationStrategy {
+    override fun abortTraversal(pointWithDirection: PointWithDirection, currentCosts: Long): Boolean {
+        delegates.forEach { delegate ->
+            if (delegate.abortTraversal(pointWithDirection, currentCosts)) {
+                return true
+            }
+        }
+        return false
+    }
+
+}
+
+private class CheckForKnownTotalCosts(private val maximumCosts: Long) : PathOptimizationStrategy {
+    override fun abortTraversal(pointWithDirection: PointWithDirection, currentCosts: Long): Boolean {
+        return currentCosts > maximumCosts
+    }
+}
+
+
 private data class PathThroughMaze(val path: List<Point>, val costs: Long)
 
 class ReindeerMaze(private val lines: List<String>) {
@@ -34,22 +90,30 @@ class ReindeerMaze(private val lines: List<String>) {
 
     fun shortestPathCost(): Long {
         val solvedPaths = mutableListOf<PathThroughMaze>()
-        val visitedJunctionsWithLowestCosts = mutableMapOf<Point, Long>()
 
-        move(startPosition, Direction.Right, visitedJunctionsWithLowestCosts, 0, solvedPaths, listOf(startPosition))
+        move(startPosition, Direction.Right, CheckVisitedPointsForLowerCosts(), 0, solvedPaths, listOf(startPosition))
 
         return solvedPaths.minOf { it.costs }
     }
 
     fun seatsOnShortestPaths(): Long {
+        // determine lowest costs (part 1)
+        val shortestPathCosts = shortestPathCost()
+
+        // traverse again and visit all paths that result in lowest determined cost
+        // also make sure to visit all the same points in all directions as this could result in
+        // additional paths with the same costs
+        val pathOptimizationStrategy = CombinedOptimizationStrategy(
+            listOf(
+                CheckVisitedPointsWithDirectionForLowerCosts(),
+                CheckForKnownTotalCosts(shortestPathCosts),
+            )
+        )
         val solvedPaths = mutableListOf<PathThroughMaze>()
-        val visitedJunctionsWithLowestCosts = mutableMapOf<Point, Long>()
 
-        move(startPosition, Direction.Right, visitedJunctionsWithLowestCosts, 0, solvedPaths, emptyList())
+        move(startPosition, Direction.Right, pathOptimizationStrategy, 0, solvedPaths, listOf(startPosition))
 
-        val shortestPathCosts = solvedPaths.minOf { it.costs }
         val distinctPoints = solvedPaths
-            .filter { it.costs == shortestPathCosts }
             .flatMap { it.path }
             .distinct()
         return distinctPoints.count().toLong()
@@ -58,7 +122,7 @@ class ReindeerMaze(private val lines: List<String>) {
     private fun move(
         position: Point,
         direction: Direction,
-        visitedJunctionsWithLowestCosts: MutableMap<Point, Long>,
+        pathOptimizationStrategy: PathOptimizationStrategy,
         costs: Long,
         solvedPathsCosts: MutableList<PathThroughMaze>,
         path: List<Point>
@@ -69,14 +133,12 @@ class ReindeerMaze(private val lines: List<String>) {
             return
         }
 
-        visitedJunctionsWithLowestCosts[position]?.let { visitedCosts ->
-            if (visitedCosts < costs) {
-                return // already been here for lower costs
-            }
-        }
-
         if (solvedPathsCosts.any { costs > it.costs }) {
             return // already found a cheaper way
+        }
+
+        if (pathOptimizationStrategy.abortTraversal(PointWithDirection(position, direction), costs)) {
+            return
         }
 
         val possibleDirections = Direction.xyDirections()
@@ -88,13 +150,9 @@ class ReindeerMaze(private val lines: List<String>) {
             return // dead end
         }
 
-        if (possibleDirections.size > 1) {
-            visitedJunctionsWithLowestCosts[position] = costs
-        }
-
         // traverse same direction first as way cheaper than turning
         val lowCostDirection = possibleDirections.firstOrNull { it.first == direction }?.let {
-            move(it.second, direction, visitedJunctionsWithLowestCosts, costs + 1, solvedPathsCosts, path + it.second)
+            move(it.second, direction, pathOptimizationStrategy, costs + 1, solvedPathsCosts, path + it.second)
             it
         }
 
@@ -104,12 +162,11 @@ class ReindeerMaze(private val lines: List<String>) {
                 move(
                     it.second,
                     it.first,
-                    visitedJunctionsWithLowestCosts,
+                    pathOptimizationStrategy,
                     costs + 1000 + 1,
                     solvedPathsCosts,
                     path + it.second
                 )
             }
-
     }
 }
