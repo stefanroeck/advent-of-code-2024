@@ -1,12 +1,10 @@
 package day16
 
-import util.MapOfThings
 import util.MapOfThings.Direction
 import util.MapOfThings.Point
-
-private enum class Maze {
-    Wall, Start, End, Empty
-}
+import util.Maze
+import util.MazeElement
+import util.MazeEvent
 
 private data class PointWithDirection(val point: Point, val direction: Direction)
 
@@ -68,30 +66,21 @@ private data class PathThroughMaze(val path: List<Point>, val costs: Long)
 
 class ReindeerMaze(private val lines: List<String>) {
 
-    private val map: MapOfThings<Maze> by lazy {
-        MapOfThings.parse(lines) { c ->
-            when (c) {
-                '#' -> Maze.Wall
-                'S' -> Maze.Start
-                'E' -> Maze.End
-                '.' -> Maze.Empty
-                else -> {
-                    throw IllegalArgumentException("Unknown char: $c")
-                }
-            }
-        }
-    }
-
-    private val startPosition by lazy { map.pointsFor(Maze.Start).single() }
-
-    private val endPosition by lazy {
-        map.pointsFor(Maze.End).single()
+    private val maze: Maze by lazy {
+        Maze(lines)
     }
 
     fun shortestPathCost(): Long {
         val solvedPaths = mutableListOf<PathThroughMaze>()
 
-        move(startPosition, Direction.Right, CheckVisitedPointsForLowerCosts(), 0, solvedPaths, listOf(startPosition))
+        move(
+            maze.startPosition,
+            Direction.Right,
+            CheckVisitedPointsForLowerCosts(),
+            0,
+            solvedPaths,
+            listOf(maze.startPosition)
+        )
 
         return solvedPaths.minOf { it.costs }
     }
@@ -111,7 +100,7 @@ class ReindeerMaze(private val lines: List<String>) {
         )
         val solvedPaths = mutableListOf<PathThroughMaze>()
 
-        move(startPosition, Direction.Right, pathOptimizationStrategy, 0, solvedPaths, listOf(startPosition))
+        move(maze.startPosition, Direction.Right, pathOptimizationStrategy, 0, solvedPaths, listOf(maze.startPosition))
 
         val distinctPoints = solvedPaths
             .flatMap { it.path }
@@ -127,26 +116,31 @@ class ReindeerMaze(private val lines: List<String>) {
         solvedPathsCosts: MutableList<PathThroughMaze>,
         path: List<Point>
     ) {
-        if (position == endPosition) {
-            println("Found path for costs $costs")
+        maze.onEvent(MazeEvent.Movement(position))
+
+        if (position == maze.endPosition) {
+            maze.onEvent(MazeEvent.FoundSolution, "with costs $costs")
             solvedPathsCosts.add(PathThroughMaze(path, costs))
             return
         }
 
         if (solvedPathsCosts.any { costs > it.costs }) {
+            maze.onEvent(MazeEvent.Abort)
             return // already found a cheaper way
         }
 
         if (pathOptimizationStrategy.abortTraversal(PointWithDirection(position, direction), costs)) {
+            maze.onEvent(MazeEvent.Abort)
             return
         }
 
         val possibleDirections = Direction.xyDirections()
             .filter { direction != it.inverse() } // no u-turns
             .map { it to position.translate(1, it) }
-            .filter { map.thingAt(it.second) != Maze.Wall } // don't run into walls
+            .filter { maze.map.thingAt(it.second) != MazeElement.Wall } // don't run into walls
 
         if (possibleDirections.isEmpty()) {
+            maze.onEvent(MazeEvent.Abort)
             return // dead end
         }
 
