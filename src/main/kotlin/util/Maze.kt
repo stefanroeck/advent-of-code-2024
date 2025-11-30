@@ -16,8 +16,11 @@ sealed interface MazeEvent {
     data object Abort : MazeEvent
 }
 
+interface MazeEventSink {
+    fun onEvent(event: MazeEvent)
+}
 
-class Maze(private val lines: List<String>) {
+class Maze(private val lines: List<String>, private val eventSinks: List<MazeEventSink> = emptyList()) {
 
     private var currentPosition: Point? = null
 
@@ -42,6 +45,7 @@ class Maze(private val lines: List<String>) {
     }
 
     fun onEvent(event: MazeEvent, context: String = "") {
+        eventSinks.forEach { it.onEvent(event) }
         when (event) {
             MazeEvent.Abort -> {}
             MazeEvent.FoundSolution -> println("Found solution at $currentPosition $context".trim())
